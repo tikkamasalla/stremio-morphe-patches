@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.6.0...v1.7.0) (2026-11-03)
+
+### ✨ New Features
+
+* phone and newer Stremio support, own times, instant next, frame-rate matching and safer skips ([eceb5dd](https://github.com/tikkamasalla/stremio-morphe-patches/commit/eceb5dd2fd5b05920477c2e407b77b55bd47e5fe))
+
 ## [1.7.0-dev.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.6.0...v1.7.0-dev.1) (2026-11-03)
 
 ### ✨ New Features
