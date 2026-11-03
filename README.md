@@ -73,7 +73,7 @@ External players that Stremio hands over to:
 * The remembered tracks win at the start of an episode. On 1.6.12 they are set as the player's preferred audio and subtitle languages before playback starts, so the first track choice is already right and nothing switches (and rebuffers) after it begins; only the subtitle kind (full dialogue, not SDH or signs) is corrected afterwards, subtitles only. Vimu applies the shared memory before its own default rules. A track you pick yourself afterwards is kept and stored, and is not overridden again. On the newer Stremio builds the memory fills in a track the app's own saved stream state does not have.
 * Default audio: with no memory, Vimu prefers Japanese audio for anime, then your Stremio audio language, then English, so a dub is not picked just because it is the first track. Anime also gets a full-dialogue subtitle in your language rather than Signs and Songs.
 * Avoid SDH subtitles: picks full dialogue subtitles over hearing-impaired tracks and strips sound notes when no other track remains. In Vimu the same rule applies to the file's embedded tracks.
-* On 1.6.12, addon subtitles arriving after playback has started no longer freeze or re-open the stream when they would not change the subtitle on screen. When they would change it, the stream re-opens as before.
+* On 1.6.12, addon subtitles that arrive after playback has started no longer re-open or freeze the stream. They are drawn directly, about a second or two after the addon answers, and the subtitle menu lists them.
 * Addon subtitles in Vimu: Stremio passes the subtitle you chose plus up to five more (your language first, then English). If the file has no good embedded track in your language, Vimu loads the best addon subtitle itself. The addon subtitles are also listed in Vimu's own subtitle menu. The GREEN or GUIDE remote key cycles addon, embedded and off.
 
 ### External players and progress
@@ -115,7 +115,6 @@ External players that Stremio hands over to:
 * Exact seek (1.6.12 only): if the exact seek fails it falls back to a normal seek.
 * The prepared-next limit is 25 s: a prepared stream that has not started by then is given up on. A start you paused is not counted.
 * On the 2.5.0 player a dead prepared stream waits out the full 25 s.
-* On 1.6.12, addon subtitles that arrive after playback has started and would change what is on screen still re-open the stream, which can freeze the picture for a few seconds. They are held when they would not change anything.
 * Online credits times can run over a mid-credits or post-credits scene. Credits over 180 s from an online source show the Skip button even in Auto mode, but a shorter window can still contain a scene.
 * Hide spoilers only changes what Stremio displays; the currently playing unwatched episode is hidden too.
 * Dependent on Stremio's own settings: Remember tracks needs "auto select" on (newer builds), Auto-pick needs the stream list setting off.
@@ -160,7 +159,7 @@ adb logcat -s IntroSkip IntroSkipPort AutoPick TrackMemory ExtProgress BingeDbg 
 The bundle lands in `patches/build/libs/patches-*.mpp`. Apply it with Morphe Desktop.
 
 <!-- PATCHES_START -->
-> **[v1.7.0](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v1.7.1-dev.1](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.7.1-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary>📦 Vimu&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>

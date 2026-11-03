@@ -17,6 +17,9 @@ import java.util.Set;
  * off, a text override and an equal-language track already showing hold. A reason fires once per media.
  * Addon items carry only id, mime, language and label (PlayerFragment.onPlayerState), so Media3's flag
  * and role paths cannot fire for them. Languages arrive Media3-normalized.
+ *
+ * <p>After the first frame a reason no longer re-opens: the wrapper draws the subtitle itself (LateSubs)
+ * and the item stays held, see {@link #drawable}. The dialog lists what is held and a pick is drawn the same way.
  */
 final class SubtitleGateCore {
     private static final String WHY_MEMORY = "memory:";
@@ -48,6 +51,7 @@ final class SubtitleGateCore {
         int selKind;
         boolean selBitmap;
         boolean rankable;
+        boolean avoidSdh;
         List<String> preferred = new ArrayList<String>();
         String pickId = "";
         String memLang = "";
@@ -60,6 +64,11 @@ final class SubtitleGateCore {
         boolean firstFrame;
         /** A re-open was started and its tracks are not known yet. */
         boolean awaitingTracks;
+        /** The reason and subtitle id drawn instead of a re-open; null = nothing drawn. */
+        String drawnWhy;
+        String drawnId;
+        /** The remembered addon id being drawn: a later re-open must still select it. */
+        private String drawnTarget;
         /** Addon id to select once its re-open has landed: neither stock nor the selector would. */
         String target;
         String lastWhy = "";
@@ -75,6 +84,9 @@ final class SubtitleGateCore {
                 firstFrame = false;
                 awaitingTracks = false;
                 target = null;
+                drawnWhy = null;
+                drawnId = null;
+                drawnTarget = null;
                 dialogMedia = null;
                 held = null;
                 heldKey = "";
@@ -124,9 +136,40 @@ final class SubtitleGateCore {
             return why == null ? null : commit(why);
         }
 
-        /** The viewer opened the subtitle dialog: whatever is held goes in, whatever the judgement. */
+        /** The reason just given is drawn by the wrapper instead: nothing re-opens and the item stays held. */
+        void drawInstead(Object item, List<Sub> subs, String why, String id) {
+            if (target != null) drawnTarget = target;
+            drawnWhy = why;
+            drawnId = id;
+            held = item;
+            heldKey = keyOf(subs);
+            awaitingTracks = false;
+            target = null;
+        }
+
+        /** The viewer picked a held subtitle in the dialog: it is drawn, the item stays held. */
+        void picked(String id) {
+            drawnWhy = "pick:" + id;
+            drawnId = id;
+            drawnTarget = null;
+        }
+
+        /** The viewer chose None or a real track: nothing is drawn, and a later batch must not start drawing again. */
+        void undrawn() {
+            drawnWhy = null;
+            drawnId = null;
+            drawnTarget = null;
+        }
+
+        /** The dialog could not list what is held: whatever is held goes in, whatever the judgement. */
         Object takeHeld() {
-            return held == null ? null : commit("dialog");
+            if (held == null) return null;
+            Object item = commit("dialog");
+            target = drawnTarget;
+            drawnTarget = null;
+            drawnWhy = null;
+            drawnId = null;
+            return item;
         }
 
         Object held() {
@@ -162,6 +205,82 @@ final class SubtitleGateCore {
             if (!spent.contains(why)) return why;
         }
         return null;
+    }
+
+    /** May this reason be drawn without touching the player? Before the first frame and for the dialog stock's re-open stays. */
+    static boolean drawable(String why) {
+        return why != null && (why.startsWith("lang:") || why.startsWith("rank:") || why.startsWith("pick:")
+                || why.startsWith(WHY_MEMORY));
+    }
+
+    /**
+     * The subtitles to draw for this reason, best first, as the player would end up with after a re-open: the
+     * saved pick or remembered label, then Media3's text ranking with ties in list order. Non-SDH first when the
+     * ranking acts on the kind. A language nothing prefers is never drawn unless it is the viewer's own choice.
+     */
+    static List<Sub> candidates(String why, In in) {
+        List<Sub> out = new ArrayList<Sub>();
+        if (!drawable(why)) return out;
+        String exact = why.startsWith("pick:") ? why.substring(5)
+                : why.startsWith(WHY_MEMORY) ? why.substring(WHY_MEMORY.length()) : null;
+        List<Sub> ranked = new ArrayList<Sub>();
+        for (Sub s : in.newSubs) {
+            if (s.id != null && s.id.equals(exact)) out.add(s);
+            else if (rank(s.lang, in)[0] != Integer.MAX_VALUE) ranked.add(s);
+        }
+        while (!ranked.isEmpty()) { // an earlier track wins every tie, as in the selector
+            Sub best = ranked.get(0);
+            for (Sub s : ranked) {
+                if (better(s, best, in)) best = s;
+            }
+            ranked.remove(best);
+            out.add(best);
+        }
+        return out;
+    }
+
+    private static boolean better(Sub a, Sub b, In in) {
+        int[] ra = rank(a.lang, in);
+        int[] rb = rank(b.lang, in);
+        if (ra[0] != rb[0]) return ra[0] < rb[0];
+        if (ra[1] != rb[1]) return ra[1] > rb[1];
+        // Track memory skips SDH whenever it restores a language; SDH avoidance acts on English.
+        boolean byKind = in.memLang.length() > 0 || (in.avoidSdh && "en".equals(primary(a.lang)));
+        return byKind && a.kind < b.kind;
+    }
+
+    /** A later delivery holds something better than what is being drawn? Then that one is drawn instead. */
+    static boolean improves(In in, String drawnId, Sub best) {
+        if (best.id.equals(drawnId)) return false;
+        for (Sub s : in.newSubs) {
+            if (s.id.equals(drawnId)) return better(best, s, in);
+        }
+        return false;
+    }
+
+    /** Index of the event in force at timeUs, or -1 before the first one. times: ascending. */
+    static int eventAt(long[] times, long timeUs) {
+        int lo = 0;
+        int hi = times.length - 1;
+        int found = -1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            if (times[mid] <= timeUs) {
+                found = mid;
+                lo = mid + 1;
+            } else {
+                hi = mid - 1;
+            }
+        }
+        return found;
+    }
+
+    /** Milliseconds until the next look at the clock: the next event at this speed, at least 20 and at most maxMs (seeks, pauses). */
+    static long nextLookMs(long[] times, int event, long timeUs, long maxMs, float speed) {
+        if (event + 1 >= times.length) return maxMs;
+        long ms = (times[event + 1] - timeUs + 999) / 1000;
+        if (speed > 0f) ms = (long) (ms / speed);
+        return Math.max(20L, Math.min(maxMs, ms));
     }
 
     private static List<String> reasons(In in, List<Sub> added) {

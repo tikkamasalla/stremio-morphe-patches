@@ -40,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import app.tikkamasalla.stremio.tuning.LateSubsCues;
+
 /**
  * Runtime bridge that keeps hearing-impaired subtitles off the screen.
  * Three layers: metadata ranking, content check, cue cleaner.
@@ -99,9 +101,10 @@ public final class SdhAvoid {
      */
     public static List cleanCues(List cues) {
         try {
+            cues = LateSubsCues.pick(cues);
             if (cues == null || cues.isEmpty()) return cues;
             Context app = lastApp;
-            if (app == null || !cleanActive || !SdhPrefs.isCleanEnabled(app)) return cues;
+            if (app == null || !(cleanActive || LateSubsCues.isDrawing()) || !SdhPrefs.isCleanEnabled(app)) return cues;
             List<Object> out = new ArrayList<Object>(cues.size());
             boolean changed = false;
             for (Object item : cues) {
