@@ -31,6 +31,20 @@ For anime, the title is resolved to the right season and cour (a broadcast block
 
 The skip settings are on/off, anime on/off, Auto or Manual, recaps on/off, Skip credits (Auto, Button or Off, default Button), Skip previews (on/off, default off) and Show skip marks (on/off, default on, 1.6.12 only). Skip marks are coloured marks on the progress bar.
 
+### Working out missing skip times
+
+The setting Work out missing skip times is off by default. When it is on and Prepare next episode has found the next file, a background process compares the audio at the start and end of that file with other episodes of the show. It needs at least 2 other episodes to agree before it reports a segment. Results rank below every other source and follow your Auto or Manual choice. It runs in its own process, so a crash in it does not stop playback.
+
+Results apply only to the exact file they were worked out for. Each episode gets one try per day, a show gets up to 24 episodes per day, and the job reads at most 100 GB per day. A result that arrives after the episode has started shows a Skip button if you are inside the segment, and never skips on its own at that moment.
+
+### Borrowed chapters
+
+The setting Borrow chapters from other releases is off by default and works without Work out missing skip times. It copies intro and credits marks from another release of the same episode, after an audio check proves the two files line up. If the check fails, nothing is copied.
+
+### Anime theme-song backup
+
+When Work out missing skip times is on and an anime with a Kitsu id still has no intro or credits, the app tries the show's official opening and ending songs from AnimeThemes.moe. It only fills a missing type, and it does nothing if it cannot be certain which show it has.
+
 ## Streams
 
 You press play and the best stream starts without a list. Auto-pick best stream never chooses a CAM, telesync or screener, a stream for another season or episode, an addon warning card or an external link. It ranks the rest like this: a single-episode file before a season pack, cached before uncached, then resolution (a 4K label such as 2160p or 4K is required, and a bare "UHD" is not enough), HDR or Dolby Vision, size, codec and seeders. There is no size cap. If every stream is bad, the list stays on screen.
