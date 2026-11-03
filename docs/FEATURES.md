@@ -19,6 +19,7 @@ These rules keep incomplete data from skipping the wrong thing:
 * Segments with an unknown end are ignored. So are intro, recap and credits segments with an unknown start.
 * Credits with a start but no end are used only once the runtime is known, only when they start in the last 40% of the file, and only when the source's file length fits this file.
 * When two online sources agree closely on a segment, only the part both agree on is skipped.
+* An early credits entry with no intro is dropped, so an outro near the start is never offered as Skip intro. The exception is TheIntroDB, which sometimes labels a real opening as credits: that entry still becomes the intro.
 * When sources disagree about a segment at 0:00, the Skip button shows instead of an automatic skip.
 * A title counts as a series only once its id (or Stremio's type) proves it. Until then skipping stays off.
 * With the Intro skip switch off, nothing is looked up and no skip button shows. On Stremio, the Next episode pill still appears for series.
@@ -39,11 +40,11 @@ Results apply only to the exact file they were worked out for. Each episode gets
 
 ### Borrowed chapters
 
-The setting Borrow chapters from other releases is off by default and works without Work out missing skip times. It copies intro and credits marks from another release of the same episode, after an audio check proves the two files line up. If the check fails, nothing is copied.
+The setting Borrow chapters from other releases is off by default and works without Work out missing skip times. It copies intro and credits marks from another release of the same episode, after an audio check proves the two files line up. If the check fails, nothing is copied. In an offline test of 40 file pairs, 44 of 45 copied segments landed within 1 s, with a median error of 0.001 s and no story cut, and all 62 deliberately mismatched cases were refused. It has not yet produced a result on a real device.
 
 ### Anime theme-song backup
 
-When Work out missing skip times is on and an anime with a Kitsu id still has no intro or credits, the app tries the show's official opening and ending songs from AnimeThemes.moe. It only fills a missing type, and it does nothing if it cannot be certain which show it has.
+When Work out missing skip times is on and an anime with a Kitsu id still has no intro or credits, the app tries the show's official opening and ending songs from AnimeThemes.moe. It only fills a missing type, and it does nothing if it cannot be certain which show it has. Because it needs only one episode, it can work where comparing episodes cannot. The PC version, used alone on 123 episodes, found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and the app's matcher agreed with it on all 99 episodes compared. It has not yet run on a real device.
 
 ## Streams
 
