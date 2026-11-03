@@ -159,7 +159,7 @@ adb logcat -s IntroSkip IntroSkipPort AutoPick TrackMemory ExtProgress BingeDbg 
 The bundle lands in `patches/build/libs/patches-*.mpp`. Apply it with Morphe Desktop.
 
 <!-- PATCHES_START -->
-> **[v1.7.0](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v1.7.1-dev.1](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.7.1-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary>📦 Vimu&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
