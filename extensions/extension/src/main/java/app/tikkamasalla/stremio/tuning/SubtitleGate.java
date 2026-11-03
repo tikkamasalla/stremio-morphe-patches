@@ -12,6 +12,7 @@ import androidx.media3.common.C;
 import androidx.media3.common.Format;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
+import androidx.media3.common.TrackGroup;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.TrackSelectionParameters;
 import androidx.media3.common.Tracks;
@@ -38,7 +39,9 @@ import app.tikkamasalla.stremio.subs.SdhPrefs;
 
 /**
  * Holds stock's subtitle-driven media-item replacement unless it would change the subtitle on screen
- * (see SubtitleGateCore). Opening the subtitle dialog applies what is held and shows the list once its
+ * (see SubtitleGateCore): before the first frame stock's call goes through, after it LateSubs draws the
+ * subtitle with no replacement. The subtitle dialog lists what is held beside the real tracks, and a pick
+ * of a held one is drawn too; if it cannot, the dialog applies what is held and shows the list once its
  * tracks are known, at most 1.5 s later. Only Stremio's ExoPlayer wrapper is gated. Every failure falls
  * back to the stock call; playWhenReady is never touched.
  */
@@ -59,6 +62,8 @@ public final class SubtitleGate {
         Runnable dialogTimeout;
         /** Puts back the window callback that watched for Back while the dialog waited. */
         Runnable unwatch;
+        /** The dialog rows made for held subtitles: stock's pick arrives as an override of one of these. */
+        final List<TrackGroup> heldRows = new ArrayList<TrackGroup>();
 
         Session(Object fragment) {
             this.fragment = new WeakReference<Object>(fragment);
@@ -83,6 +88,10 @@ public final class SubtitleGate {
                     } else if ("onPlaybackStateChanged".equals(name) && args.length == 1
                             && Integer.valueOf(Player.STATE_IDLE).equals(args[0])) {
                         session.state.firstFrame = false; // stopped: the next start hides a re-open again
+                        LateSubs.stop(player, "idle");
+                    } else if ("onTrackSelectionParametersChanged".equals(name) && args.length == 1
+                            && args[0] instanceof TrackSelectionParameters) {
+                        onParameters(player, session, (TrackSelectionParameters) args[0]);
                     } else if ("onTracksChanged".equals(name) && args.length == 1 && args[0] instanceof Tracks) {
                         onTracks(player, session, (Tracks) args[0]);
                     }
@@ -103,14 +112,133 @@ public final class SubtitleGate {
             if (s != null && !resetPosition) {
                 s.state.sync(mediaKey(player));
                 if (s.state.holdsSame(subsOf(item), item)) return;
-                String why = s.state.offer(input(player, s, item), item);
-                logEvent(why == null ? "sub.held" : "sub.apply", why, item);
-                if (why == null) return;
+                SubtitleGateCore.In in = input(player, s, item);
+                String why = s.state.offer(in, item);
+                if (why == null) {
+                    logEvent("sub.held", null, item);
+                    redraw(player, s, item, in);
+                    return;
+                }
+                if (draw(player, s, item, why, in)) return;
+                logEvent("sub.apply", why, item);
             }
         } catch (Throwable t) {
             Log.w(TAG, "gate failed: " + t);
         }
+        LateSubs.stop(player, "replaced");
         player.setMediaItem(item, resetPosition);
+    }
+
+    /** After the first frame: the subtitle is drawn with no replacement and the item stays held. False: stock's way. */
+    private static boolean draw(Player player, Session s, MediaItem item, String why, SubtitleGateCore.In in) {
+        try {
+            if (!SubtitleGateCore.drawable(why)) return false;
+            List<SubtitleGateCore.Sub> order = SubtitleGateCore.candidates(why, in);
+            LateSubs.draw(player, field(s.fragment.get(), "subtitleView"), item, order);
+            s.state.drawInstead(item, in.newSubs, why, order.get(0).id);
+            logEvent("sub.late", why, item);
+            return true;
+        } catch (Throwable t) {
+            Log.w(TAG, "late draw refused: " + t);
+            return false;
+        }
+    }
+
+    /** A later batch can hold something better than what is drawn; no reason fires, the player's selection never changed. */
+    private static void redraw(Player player, Session s, MediaItem item, SubtitleGateCore.In in) {
+        if (s.state.drawnWhy == null) return;
+        List<SubtitleGateCore.Sub> order = SubtitleGateCore.candidates(s.state.drawnWhy, in);
+        if (!order.isEmpty() && SubtitleGateCore.improves(in, s.state.drawnId, order.get(0))) {
+            draw(player, s, item, s.state.drawnWhy, in);
+        }
+    }
+
+    /** Adds the held subtitles to the dialog's list, as stock would list them after a replacement. False: not possible. */
+    @SuppressWarnings("unchecked")
+    private static boolean listHeld(Object dialog, Player player, Session s) {
+        try {
+            MediaItem item = (MediaItem) s.state.held();
+            Field infos = dialog.getClass().getDeclaredField("trackInfos");
+            infos.setAccessible(true);
+            Constructor<?> row = Class.forName(dialog.getClass().getName() + "$TrackInfo")
+                    .getDeclaredConstructor(Tracks.Group.class, int.class);
+            row.setAccessible(true);
+            boolean drawing = LateSubs.drawing(player);
+            List<Object> rows = new ArrayList<Object>();
+            for (Object info : (List<Object>) infos.get(dialog)) {
+                // What is drawn is what shows: a real track selected underneath is not marked.
+                rows.add(drawing ? unmarked(row, info) : info);
+            }
+            List<String> real = new ArrayList<String>();
+            for (SubtitleGateCore.Sub c : subsOf(player.getCurrentMediaItem())) real.add(c.id);
+            s.heldRows.clear();
+            for (MediaItem.SubtitleConfiguration c : item.localConfiguration.subtitleConfigurations) {
+                if (real.contains(c.id)) continue;
+                TrackGroup group = new TrackGroup(new Format.Builder().setId(c.id).setSampleMimeType(c.mimeType)
+                        .setLanguage(c.language).setLabel(c.label).build());
+                boolean on = drawing && c.id != null && c.id.equals(s.state.drawnId);
+                rows.add(row.newInstance(new Tracks.Group(group, false, new int[]{C.FORMAT_HANDLED}, new boolean[]{on}), 0));
+                s.heldRows.add(group);
+            }
+            infos.set(dialog, rows);
+            return true;
+        } catch (Throwable t) {
+            Log.w(TAG, "dialog list failed: " + t.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    private static Object unmarked(Constructor<?> row, Object info) throws Exception {
+        Tracks.Group g = (Tracks.Group) call(info, "getGroup");
+        int[] support = new int[g.length];
+        for (int i = 0; i < g.length; i++) support[i] = g.getTrackSupport(i);
+        return row.newInstance(new Tracks.Group(g.getMediaTrackGroup(), g.isAdaptiveSupported(), support, new boolean[g.length]),
+                call(info, "getIndex"));
+    }
+
+    /** A pick of a held row comes as an override the player cannot use: it is drawn instead. None or a real track end the drawing. */
+    private static void onParameters(final Player player, final Session s, TrackSelectionParameters params) {
+        for (TrackSelectionOverride o : params.overrides.values()) {
+            if (s.heldRows.contains(o.mediaTrackGroup)) {
+                final TrackGroup group = o.mediaTrackGroup;
+                MAIN.post(new Runnable() { // stock's dialog code is still running
+                    @Override
+                    public void run() {
+                        drawPick(player, s, group);
+                    }
+                });
+                return;
+            }
+        }
+        if (decidesText(params)) {
+            LateSubs.stop(player, "selection");
+            s.state.undrawn();
+        }
+    }
+
+    private static void drawPick(Player player, Session s, TrackGroup group) {
+        try {
+            player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().clearOverride(group).build());
+            s.state.sync(mediaKey(player));
+            MediaItem item = (MediaItem) s.state.held();
+            if (item == null || player.getPlaybackState() == Player.STATE_IDLE) return;
+            String id = group.getFormat(0).id;
+            List<SubtitleGateCore.Sub> order = SubtitleGateCore.candidates("pick:" + id, input(player, s, item));
+            LateSubs.draw(player, field(s.fragment.get(), "subtitleView"), item, order.subList(0, 1));
+            s.state.picked(id);
+            logEvent("sub.late", "pick:", item);
+        } catch (Throwable t) {
+            Log.w(TAG, "late pick failed: " + t.getClass().getSimpleName());
+        }
+    }
+
+    /** The viewer (or the saved state) chose off or one track: what is drawn yields to that. */
+    private static boolean decidesText(TrackSelectionParameters params) {
+        if (params.disabledTrackTypes.contains(C.TRACK_TYPE_TEXT)) return true;
+        for (TrackSelectionOverride o : params.overrides.values()) {
+            if (o.getType() == C.TRACK_TYPE_TEXT) return true;
+        }
+        return false;
     }
 
     /** Replacement for TrackSelectionDialog.show(). The dialog captured its list when built, so a new one replaces it. */
@@ -119,6 +247,11 @@ public final class SubtitleGate {
             final Player player = (Player) field(dialog, "player");
             final Session s = SESSIONS.get(player);
             if (s != null && (Integer) field(dialog, "trackType") == C.TRACK_TYPE_TEXT) {
+                s.state.sync(mediaKey(player));
+                if (!s.state.awaitingTracks && s.state.held() != null && listHeld(dialog, player, s)) {
+                    show(dialog);
+                    return;
+                }
                 Object held = s.state.takeHeld();
                 if (held != null) open(player, s, (MediaItem) held);
                 if (s.state.awaitingTracks) {
@@ -149,7 +282,7 @@ public final class SubtitleGate {
         keepSelections(player, s, tracks);
         if (s.state.held() != null) {
             final Object again = s.state.rejudge(input(player, s, (MediaItem) s.state.held()));
-            if (again != null) {
+            if (again != null && !draw(player, s, (MediaItem) again, s.state.lastWhy, input(player, s, (MediaItem) again))) {
                 // Not from inside the listener dispatch; a waiting dialog waits for this re-open's tracks.
                 MAIN.post(new Runnable() {
                     @Override
@@ -166,6 +299,7 @@ public final class SubtitleGate {
     private static void open(Player player, Session s, MediaItem item) {
         try {
             logEvent("sub.apply", s.state.lastWhy, item);
+            LateSubs.stop(player, "replaced");
             player.setMediaItem(item, false);
         } catch (Throwable t) {
             Log.w(TAG, "apply failed: " + t);
@@ -334,6 +468,7 @@ public final class SubtitleGate {
         }
         in.preferred.addAll(params.preferredTextLanguages);
         Object fragment = s.fragment.get();
+        in.avoidSdh = SdhPrefs.isAvoidEnabled((Context) call(fragment, "getContext"));
         Tracks tracks = player.getCurrentTracks();
         in.tracksKnown = !tracks.getGroups().isEmpty();
         for (Tracks.Group g : tracks.getGroups()) {
