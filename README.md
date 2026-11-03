@@ -56,15 +56,15 @@ Open an issue with the app version, your device, the Morphe log if patching fail
 <!-- PATCHES_START -->
 > **[v1.7.1](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
-<summary>📦 Vimu&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>Vimu&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
-**🎯 Supported versions:**
+**Supported versions:**
 
-| 🧪&nbsp;12.00 ST | 🧪&nbsp;12.00 |
+| 12.00 ST | 12.00 |
 | :---: | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| Patch | Description | Options |
 |----------|----------------|-----------|
 | [Addon subtitles in subtitle menu (Vimu)](#addon-subtitles-in-subtitle-menu-vimu) | Lists the addon subtitles from Stremio in Vimu's subtitle menu. Runs with the Intro Skip (Vimu) patch. |  |
 | [External player result (Vimu)](#external-player-result-vimu) | Returns position and duration from Vimu so Stremio saves progress. Runs with the Intro Skip (Vimu) patch. |  |
@@ -77,10 +77,10 @@ Open an issue with the app version, your device, the Morphe log if patching fail
 </details>
 
 <details open>
-<summary>📦 Stremio&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
+<summary>Stremio&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| Patch | Description | Options |
 |----------|----------------|-----------|
 | [Auto-pick best stream](#auto-pick-best-stream) | Skips the stream list and plays the top ranked stream. Enable Always show stream list to see every stream. |  |
 | [Avoid SDH subtitles](#avoid-sdh-subtitles) | Prefers full dialogue subtitles over SDH/CC tracks and strips sound notes when none remain.<br><br>Avoid SDH v1.0.0<br>Repository: https://github.com/tikkamasalla/stremio-morphe-patches |  |
