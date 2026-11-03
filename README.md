@@ -40,7 +40,13 @@ Working out missing skip times. This optional setting, off by default, fills the
 
 Each result applies only to the exact file it was worked out for, and each episode gets one try per day. A slow job can finish after the next episode has started, so its intro may be missed.
 
-Two more options work alongside it. Borrow chapters from other releases, also off by default, copies intro and credits marks from another release of the same episode after an audio check proves the two files line up. In an offline test of 40 file pairs it cut no story, and it refused all 62 deliberately mismatched cases. It has not yet produced a result on a real device. The anime theme-song backup runs with Work out missing skip times and fills a missing intro or credits by matching the show's official songs. It works only for shows with Kitsu ids and never replaces another source.
+Three more changes came with it in 1.8:
+
+| Feature | What it does | What we measured |
+|---|---|---|
+| Borrow chapters from other releases (off by default) | Copies intro and credits marks from another release of the same episode, after an audio check proves the two files line up. | Offline test of 40 file pairs: 44 of 45 copied segments landed within 1 s, median error 0.001 s, no story cut. All 62 deliberately mismatched cases were refused. It has not yet produced a result on a real device. |
+| Anime theme-song backup (runs with Work out missing skip times) | Fills a missing intro or credits by matching the show's official songs. It needs only one episode, works only for shows with Kitsu ids, and never replaces another source. | The PC version, used alone on 123 episodes, found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and rescued Blood+ from 0 of 5 intros to 5 of 5. The app's matcher agreed with it on all 99 episodes compared. It has not yet run on a real device. |
+| Early outro fix | Stops an outro near the start of an episode from being offered as "Skip intro". An opening that TheIntroDB mislabels as credits is still treated as the intro, because that case is real. | Covered by self-tests in both Stremio's player and Vimu. |
 
 Streams. Auto-pick best stream plays the top-ranked stream without showing the list. It never picks a CAM, telesync or screener.
 
