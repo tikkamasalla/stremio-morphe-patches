@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* late addon subtitles no longer freeze the start on 1.6.12 ([d4741c7](https://github.com/tikkamasalla/stremio-morphe-patches/commit/d4741c77869ee58f2bcdaf3749293e844ca34ec5))
+
 ## [1.7.1-dev.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.7.0...v1.7.1-dev.1) (2026-11-03)
 
 ### 🐛 Bug Fixes
