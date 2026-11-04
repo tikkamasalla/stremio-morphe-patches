@@ -43,7 +43,7 @@ Timestamps load in this priority order:
 
 ### Work out missing skip times
 
-Turn on `Work out missing skip times` (off by default) to find timestamps for episodes missing from online databases. While you watch an episode, the app compares the next episode's audio in the background against other episodes of the same show. Detected timestamps have the lowest priority and follow your Auto or Manual setting.
+Online sources are checked first and are always on. Turn on `Work out missing skip times` (off by default) for episodes they do not cover. While you watch an episode, the app compares the next episode's audio in the background against other episodes of the same show and works the timestamps out itself. Detected timestamps have the lowest priority and follow your Auto or Manual setting.
 
 Results apply only to the exact file analyzed, with a limit of one attempt per episode per day. If analysis finishes after you start the next episode, the intro skip may not be ready in time.
 
