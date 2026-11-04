@@ -41,7 +41,7 @@ Timestamps load in this priority order:
 2. [IntroKiller Engine](https://github.com/tikkamasalla/introkiller-engine)
 3. AniSkip, TheIntroDB, IntroDB.app, and SkipDB
 
-### Detect missing skip times
+### Work out missing skip times
 
 Turn on `Work out missing skip times` (off by default) to find timestamps for episodes missing from online databases. While you watch an episode, the app compares the next episode's audio in the background against other episodes of the same show. Detected timestamps have the lowest priority and follow your Auto or Manual setting.
 
