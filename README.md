@@ -57,8 +57,8 @@ Version 1.8 added three detection upgrades:
 
 | Upgrade | Behavior | Test results |
 |---|---|---|
-| Borrow chapters from other releases (off by default) | Copies intro and credits marks from another release of the same episode after audio alignment verifies both files match. | Offline test of 40 file pairs: 44 of 45 copied segments landed within 1 s (median error 0.001 s, zero story cuts). Refused all 62 deliberately mismatched pairs. Has not yet produced a result on a real device. |
-| Anime theme-song backup (runs with `Work out missing skip times`) | Matches a show's official theme songs against episode audio. Needs only one episode, requires a Kitsu id, and never overrides another source. | Standalone PC test across 123 episodes: found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and took Blood+ from 0 of 5 intros to 5 of 5. The app matcher agreed on all 99 compared episodes. Has not yet run on a real device. |
+| Borrow chapters from other releases (off by default) | Copies intro and credits marks from another release of the same episode after audio alignment verifies both files match. | Offline test of 40 file pairs: 44 of 45 copied segments landed within 1 s (median error 0.001 s, zero story cuts). Refused all 62 deliberately mismatched pairs. |
+| Anime theme-song backup (runs with `Work out missing skip times`) | Matches a show's official theme songs against episode audio. Needs only one episode, requires a Kitsu id, and never overrides another source. | Standalone PC test across 123 episodes: found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and took Blood+ from 0 of 5 intros to 5 of 5. The app matcher agreed on all 99 compared episodes. |
 | Early outro fix | Drops early credits entries on episodes without an intro so an early outro is not offered as "Skip intro". Keeps openings that TheIntroDB mislabels as credits. | Verified by self-tests in both Stremio's player and Vimu. |
 
 ### Streams, tracks, and external players
