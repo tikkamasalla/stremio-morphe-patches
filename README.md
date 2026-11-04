@@ -1,16 +1,16 @@
 # Stremio Morphe Patches
 
-Patches for Stremio and Vimu that skip intros, recaps and credits for you. They also pick the best stream, avoid SDH subtitles (subtitles for the deaf and hard of hearing), and pass your episode, subtitles and audio and subtitle choices to external players. They are made for Android TV, with phone support from 1.7. You apply them to your own copy of the app with Morphe, a tool that patches Android apps.
+Patches for Stremio and Vimu that skip intros, recaps, and credits, auto-pick the best stream, filter out SDH subtitles (subtitles for the deaf and hard of hearing), and sync playback progress and language choices with external players. Built for Android TV, with phone support added in 1.7. You apply them to your own APK using Morphe, an Android app patcher.
 
 ## Install
 
-1. In Morphe Manager, add this repo as a patch source: https://morphe.software/add-source?github=tikkamasalla/stremio-morphe-patches
-2. Pick the Stremio app (or Vimu) and turn on the patches you want, for example "Intro Skip".
+1. Add this repository as a patch source in Morphe Manager: https://morphe.software/add-source?github=tikkamasalla/stremio-morphe-patches
+2. Select Stremio (or Vimu) and enable the patches you want, such as "Intro Skip".
 3. Patch and install.
 
-The patched app replaces your current Stremio. To keep both, turn on the Side-by-side install patch, which is off by default. It installs the patched app as "Stremio Morphe" (package com.stremio.one.morphe) next to the original.
+By default, the patched build replaces your existing Stremio app. To keep both installed, enable the `Side-by-side install` patch (off by default). It installs the patched build as "Stremio Morphe" (`com.stremio.one.morphe`) alongside the original app.
 
-For Vimu, patch your own copy of the Vimu 12.00 APK. A copy that someone else already modified may carry extra checks that these patches do not remove. Stock Vimu exits when its signing certificate changes, which happens with every patched build, and the Re-sign check (Vimu) patch lets the patched app run.
+For Vimu, always patch an untouched Vimu 12.00 APK. Pre-modified APKs from third parties often include extra tamper checks that these patches do not strip. Stock Vimu also exits whenever its signing certificate changes, which happens on every patched build. The `Re-sign check (Vimu)` patch removes that check so the app runs normally.
 
 ## Supported versions
 
@@ -22,15 +22,15 @@ For Vimu, patch your own copy of the Vimu 12.00 APK. A copy that someone else al
 | Stremio phone (com.stremio.one, touch UI) | 2.4.0, 2.5.0 | Touch skip button. Mod settings from the launcher shortcut. |
 | Vimu Media Player (net.gtvbox.videoplayer) | 12.00 | Seven patches of its own. |
 
-The eleven Stremio patches that apply by default work on all five Stremio versions. A twelfth, Side-by-side install, is off by default. 1.12.0 and 2.5.0 are new in 1.7. If your copy does not patch cleanly, open an issue and attach the Morphe log.
+Eleven Stremio patches are enabled by default and work across all five supported Stremio versions. A twelfth patch, `Side-by-side install`, is off by default. Support for 1.12.0 and 2.5.0 arrived in 1.7. If your APK fails to patch, open an issue and attach the Morphe log.
 
-On every version except 1.6.12, skips can land 1-2 s early and the progress bar has no skip marks. The settings are in one Mod settings screen. On TV, open it from the first row of Stremio Settings or with the MENU key. On a phone, long-press the launcher icon. The [feature guide](docs/FEATURES.md) lists every difference.
+On every Stremio version except 1.6.12, skips can land 1-2 s early and the progress bar does not display skip marks. All patch options live in a single Mod settings screen. On TV, open it from the top row of Stremio Settings or press the MENU key. On a phone, long-press the app launcher icon. See the [feature guide](docs/FEATURES.md) for a full comparison across versions.
 
 ## What you get
 
-Skipping. Intros, recaps and credits are skipped automatically, or with a Skip button in Manual mode. The times come from the chapters inside the video file, then from AniSkip, TheIntroDB, IntroDB.app and SkipDB, with no API keys. Times from [IntroKiller Engine](https://github.com/tikkamasalla/introkiller-engine) are tried before the online sources. Movies and post-credit scenes are never skipped.
+**Skipping.** Intros, recaps, and credits skip automatically, or show an on-screen Skip button in Manual mode. Timestamps come from embedded video chapters first, then [IntroKiller Engine](https://github.com/tikkamasalla/introkiller-engine), and finally AniSkip, TheIntroDB, IntroDB.app, and SkipDB. No API keys are needed. Movies and post-credit scenes are never skipped.
 
-Working out missing skip times. This optional setting, off by default, fills the gap when no online source has times for an episode. While one episode plays, the app studies the next one in the background by comparing its audio with other episodes of the show, then uses the result as the lowest-priority source. It follows your Auto or Manual choice like any other skip.
+**Working out missing skip times.** This optional setting (off by default) fills in the blanks when no online database has timestamps for an episode. While you watch one episode, the app analyzes the next episode in the background by comparing its audio against other episodes of the same show. Detected timestamps act as the lowest-priority source and respect your Auto or Manual preference.
 
 | Tested on one Streamer, real streams | Time for one episode | Data read through your debrid service | Result |
 |---|---:|---:|---|
@@ -38,38 +38,44 @@ Working out missing skip times. This optional setting, off by default, fills the
 | 1080p, one comparison episode to fetch | about 19 minutes | about 0.9 GB | Intro and credits found, correct on frames |
 | 4K remux, nothing stored | about 40 minutes | about 5 GB | Finished, found nothing on that show |
 
-Each result applies only to the exact file it was worked out for, and each episode gets one try per day. A slow job can finish after the next episode has started, so its intro may be missed.
+Each result applies strictly to the exact file that was analyzed, and each episode gets at most one attempt per day. If a slow analysis finishes after you have already started the next episode, its intro skip may not be ready in time.
 
-Three more changes came with it in 1.8:
+Three related upgrades arrived in 1.8:
 
 | Feature | What it does | What we measured |
 |---|---|---|
-| Borrow chapters from other releases (off by default) | Copies intro and credits marks from another release of the same episode, after an audio check proves the two files line up. | Offline test of 40 file pairs: 44 of 45 copied segments landed within 1 s, median error 0.001 s, no story cut. All 62 deliberately mismatched cases were refused. It has not yet produced a result on a real device. |
-| Anime theme-song backup (runs with Work out missing skip times) | Fills a missing intro or credits by matching the show's official songs. It needs only one episode, works only for shows with Kitsu ids, and never replaces another source. | The PC version, used alone on 123 episodes, found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and rescued Blood+ from 0 of 5 intros to 5 of 5. The app's matcher agreed with it on all 99 episodes compared. It has not yet run on a real device. |
-| Early outro fix | Stops an outro near the start of an episode from being offered as "Skip intro". An opening that TheIntroDB mislabels as credits is still treated as the intro, because that case is real. | Covered by self-tests in both Stremio's player and Vimu. |
+| Borrow chapters from other releases (off by default) | Copies intro and credits marks from another release of the same episode after an audio check verifies that both files line up. | Offline test of 40 file pairs: 44 of 45 copied segments landed within 1 s, median error 0.001 s, no story cut. All 62 deliberately mismatched cases were refused. It has not yet produced a result on a real device. |
+| Anime theme-song backup (runs with Work out missing skip times) | Finds a missing intro or credits by matching the show's official theme songs. Needs only one episode, works only for shows with Kitsu ids, and never overrides another source. | The PC version, used alone on 123 episodes, found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and rescued Blood+ from 0 of 5 intros to 5 of 5. The app's matcher agreed with it on all 99 episodes compared. It has not yet run on a real device. |
+| Early outro fix | Prevents an outro near the start of an episode from being offered as "Skip intro". An opening that TheIntroDB mislabels as credits is still treated as the intro, because that case happens in the wild. | Covered by self-tests in both Stremio's player and Vimu. |
 
-Streams. Auto-pick best stream plays the top-ranked stream without showing the list. It never picks a CAM, telesync or screener.
+**Streams.** `Auto-pick best stream` launches the highest-ranked stream immediately without showing the stream list. It never picks a CAM, telesync, or screener.
 
-Tracks and subtitles. The audio and subtitle language you pick is remembered for each show, in Stremio's player and in Vimu. Avoid SDH subtitles prefers full dialogue tracks.
+**Tracks and subtitles.** Both Stremio's built-in player and Vimu remember your chosen audio and subtitle languages per show. `Avoid SDH subtitles` prefers standard dialogue tracks over hearing-impaired subtitles.
 
-External players. Stremio passes the show, episode, start position and subtitles to the player, saves your progress, and starts the next episode in the same player.
+**External players.** Stremio passes the show title, episode, start position, and subtitles to your external player, records your playback progress, and automatically starts the next episode in the same player.
 
-The patches also add Hide spoilers, Smoother playback and a Mod settings screen.
+The patches also include `Hide spoilers`, `Smoother playback`, and a unified Mod settings screen.
 
 ## Known limits
 
-* File chapters are read from Matroska and WebM files only, and they need an http(s) stream.
-* If no online source has data for an episode, such as a new release, there is nothing to skip unless Work out missing skip times is on.
-* Online credits times can run over a mid-credits or post-credits scene.
-* Remember tracks needs Stremio's "auto select" setting on (newer builds). Auto-pick needs "Always show stream list" off.
+* Embedded file chapters are read only from Matroska and WebM files streamed over `http(s)`.
+* If no online source has timestamps for an episode (such as a brand-new release), nothing can be skipped unless `Work out missing skip times` is enabled.
+* Online credits timestamps can occasionally skip over a mid-credits or post-credits scene.
+* `Remember tracks` requires Stremio's built-in "auto select" option to be enabled on newer builds. `Auto-pick` requires `Always show stream list` to be turned off.
 
 ## What the patches connect to
 
-Besides Stremio's own traffic, your addons and your debrid service, the patched code contacts only these. For skip times: api.aniskip.com, api.theintrodb.org, api.introdb.app, api.skipdb.tv, and raw.githubusercontent.com for this project's own times file. The anime theme-song backup, only when Work out missing skip times is on: kitsu.app, graphql.anilist.co, graphql.animethemes.moe and AnimeThemes' audio host. For finding the right show: graphql.anilist.co, kitsu.app, v3-cinemeta.strem.io. Lookups send the show id or title, season, episode and, where the source uses it, the file's length. No account, stream address or debrid key is sent.
+Outside of Stremio's normal traffic, your addons, and your debrid service, the patches connect only to these hosts:
+
+* **Skip timestamps:** `api.aniskip.com`, `api.theintrodb.org`, `api.introdb.app`, `api.skipdb.tv`, and `raw.githubusercontent.com` (for this project's published timings file).
+* **Anime theme-song backup (only when `Work out missing skip times` is on):** `kitsu.app`, `graphql.anilist.co`, `graphql.animethemes.moe`, and AnimeThemes' audio host.
+* **Show matching:** `graphql.anilist.co`, `kitsu.app`, and `v3-cinemeta.strem.io`.
+
+Requests send only the show id or title, season, episode number, and (where used by the source) the file duration. No account credentials, stream URLs, or debrid keys are ever sent.
 
 ## Help
 
-Open an issue with the app version, your device, the Morphe log if patching failed, and the relevant logcat lines. The feature guide lists the log tags. To build the patches yourself, run `./gradlew :patches:build` and apply the bundle in `patches/build/libs/patches-*.mpp` with Morphe Desktop.
+Open an issue with your app version, device model, the Morphe log if patching failed, and the relevant logcat lines. The feature guide lists the log tags to filter by. To build the patches from source, run `./gradlew :patches:build` and load the generated bundle (`patches/build/libs/patches-*.mpp`) in Morphe Desktop.
 
 <!-- PATCHES_START -->
 > **[v1.8.0](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
