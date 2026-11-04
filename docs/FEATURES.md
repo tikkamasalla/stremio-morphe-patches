@@ -15,7 +15,7 @@ Configure these options in Mod settings:
 * Recaps: On/off.
 * `Skip credits`: `Auto`, `Button`, or `Off` (default `Button`).
 * `Skip previews`: On/off (default off).
-* `Show skip marks`: On/off (default on, Stremio `1.6.12` only). Draws colored segment markers on the progress bar.
+* `Show skip marks`: On/off (default on, Stremio `1.6.12` only). Draws coloured segment markers on the progress bar.
 
 ### Timestamp sources and lookup rules
 
@@ -37,7 +37,7 @@ The patch checks sources in this order:
 
 ### Chapter rules
 
-* **Intros:** Chapters named `Opening`, `OP`, `Opening Credits`, `Main Titles`, `Title Sequence`, `Theme`, and close variations count as intros. Online timestamps snap to nearby chapter edges.
+* **Intros:** Chapters named `Opening`, `OP`, `Opening Credits`, `Main Titles`, `Title Sequence`, `Theme`, and close variations count as intros. Online timestamps snap to chapter edges.
 * **Generic "Intro" chapters:** A chapter named simply `"Intro"` counts only when AniSkip, TheIntroDB, or IntroDB.app agrees with it within 15 s. If no online source has an intro, Vimu still accepts a lone `"Intro"` chapter when it runs 20-150 s and starts after `0:00` (such as after a cold open). Stremio ignores lone `"Intro"` chapters without online confirmation.
 * **Credits and post-credit scenes:** Skipping credits seeks to the end of the credits segment rather than the end of the file, so post-credit scenes play normally. Chapters named `post-credit`, `mid-credit`, `stinger`, `epilogue`, or `bonus scene` never skip, and any credits segment trims where one of those begins.
 * **"Ending" chapters:** A chapter named `Ending` counts as story by default. It is treated as credits only when all three conditions hold: it starts in the last 20% of the file, runs 240 s or less, and has a confirming signal (an online credits entry within 15 s, a preview or credits chapter immediately after it, or it is the final chapter in the file).
@@ -58,7 +58,7 @@ The patch drops incomplete or conflicting timestamps to avoid cutting into the s
 
 * **Work out missing skip times (off by default):** When `Prepare next episode` locates the next episode's file, an isolated background process compares the audio at the start and end of that file against other episodes of the show. Because the analyzer runs in its own process, a crash inside it never interrupts playback. At least 2 other episodes must match to report a segment. Results rank below all other sources, follow your `Auto` or `Manual` setting, and apply strictly to the exact file analyzed. If analysis finishes while you are already watching inside the detected segment, the player shows a Skip button and never jumps automatically. Quotas cap usage at 1 attempt per episode per day, 24 episodes per show per day, and 100 GB of data read per day.
 * **Borrow chapters from other releases (off by default):** Works independently of `Work out missing skip times`. Copies intro and credits chapter marks from another release of the same episode after an audio alignment check proves both files match. If alignment fails, nothing is copied. In an offline test of 40 file pairs, 44 of 45 copied segments landed within 1 s (median error 0.001 s, zero story cuts), and all 62 deliberately mismatched pairs were rejected. It has not yet produced a result on a real device.
-* **Anime theme-song backup:** Runs when `Work out missing skip times` is on and an anime with a Kitsu id still lacks an intro or credits. Matches the show's official opening and ending songs from AnimeThemes.moe against the episode audio. It requires only a single episode, fills only missing segment types, and does nothing if it cannot confirm the exact show. Tested standalone on a PC across 123 episodes, it found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and took Blood+ from 0 of 5 intros found to 5 of 5. The app matcher agreed with the PC build on all 99 compared episodes. It has not yet run on a real device.
+* **Anime theme-song backup:** Runs when `Work out missing skip times` is on and an anime with a Kitsu id still lacks an intro or credits. Matches the show's official opening and ending songs from AnimeThemes.moe against the episode audio. It requires only a single episode, so it can work where comparing episodes cannot. It fills only missing segment types, and does nothing if it cannot confirm the exact show. Tested standalone on a PC across 123 episodes, it found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and took Blood+ from 0 of 5 intros found to 5 of 5. The app matcher agreed with the PC build on all 99 compared episodes. It has not yet run on a real device.
 
 ## Streams
 
@@ -111,7 +111,7 @@ If you have no default player set and Vimu is not installed, Android displays th
 ## Stremio version differences
 
 **Stremio 1.6.12** is the reference build:
-* Patch options appear as native rows inside Stremio Settings (`Interface` for `Hide spoilers`, `Playback` for the rest).
+* Patch options appear as rows inside Stremio Settings (`Interface` for `Hide spoilers`, `Playback` for the rest).
 * Skips use an exact seek.
 * Supports progress bar skip marks and cold-start external player recovery.
 
