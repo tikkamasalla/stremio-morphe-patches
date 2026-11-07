@@ -1,6 +1,7 @@
 """Render scene pages in installed Edge (headless) and encode looping animated WebP.
 
     python render.py build  SCENES_DIR OUT_DIR [name ...]   # every frame -> name.webp (880), name@2x.webp (1760), name.png (mid-loop still)
+    python render.py stills SCENES_DIR OUT_DIR [name ...]   # only the PNG fallbacks, at each scene's settled moment
     python render.py peek   SCENES_DIR OUT_PNG t1,t2,t3 [name ...]   # contact strip of chosen times for review
 
 Needs: playwright with Edge or Chrome, Pillow, and img2webp from libwebp (apt install webp); ffmpeg is the fallback.
@@ -26,6 +27,24 @@ def scene_dur(page):
     return page.evaluate("() => Math.max(...document.getAnimations().map(a => a.effect.getTiming().duration)) / 1000")
 
 
+def still_time(page):
+    return float(page.evaluate("() => (document.querySelector('meta[name=still]') || {content: '0'}).content"))
+
+
+def stills(scenes, out, names):
+    """Only the PNG fallbacks: one settled frame per scene, rendered at 2x and scaled to 880 wide."""
+    out.mkdir(parents=True, exist_ok=True)
+    with sync_playwright() as p:
+        br = p.chromium.launch(channel=CHANNEL, headless=True)
+        for name in names:
+            ctx, page = open_scene(br, scenes / (name + ".html"), 2)
+            t = still_time(page)
+            Image.open(io.BytesIO(shot(page, t))).resize((880, 440), Image.LANCZOS).save(out / (name + ".png"), optimize=True)
+            ctx.close()
+            print("%-24s still at %.2fs" % (name, t))
+        br.close()
+
+
 def open_scene(br, path, scale):
     ctx = br.new_context(viewport={"width": 880, "height": 440}, device_scale_factor=scale)
     page = ctx.new_page()
@@ -47,13 +66,14 @@ def build(scenes, out, names):
         for name in names:
             ctx, page = open_scene(br, scenes / (name + ".html"), 2)
             dur = scene_dur(page)
+            still_t = still_time(page)
             n = int(round(dur * FPS))
             tmp = Path(tempfile.mkdtemp(prefix="frames-", dir=str(out)))
             for i in range(n):
                 (tmp / ("f%04d.png" % i)).write_bytes(shot(page, i / FPS))
             ctx.close()
-            # The still fallback is a frame from the middle of the loop, where every part of the scene is on screen.
-            Image.open(tmp / ("f%04d.png" % int(n * 0.62))).resize((880, 440), Image.LANCZOS).save(out / (name + ".png"), optimize=True)
+            # The still fallback is the scene's settled moment (meta "still"), where every part is on screen.
+            Image.open(tmp / ("f%04d.png" % min(n - 1, int(round(still_t * FPS))))).resize((880, 440), Image.LANCZOS).save(out / (name + ".png"), optimize=True)
             small = tmp / "1x"
             small.mkdir()
             for i in range(n):
@@ -103,7 +123,10 @@ def peek(scenes, out_png, times, names):
 
 if __name__ == "__main__":
     mode = sys.argv[1]
-    if mode == "build":
+    if mode == "stills":
+        scenes, out = Path(sys.argv[2]), Path(sys.argv[3])
+        stills(scenes, out, sys.argv[4:] or sorted(p.stem for p in scenes.glob("*.html")))
+    elif mode == "build":
         scenes, out = Path(sys.argv[2]), Path(sys.argv[3])
         names = sys.argv[4:] or sorted(p.stem for p in scenes.glob("*.html"))
         build(scenes, out, names)

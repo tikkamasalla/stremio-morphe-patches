@@ -88,6 +88,7 @@ class Scene:
         self.acc = ACCENTS.get(accent, accent)
         self.css, self.body, self.n = [], [], 0
         self.caps = []
+        self.still = None  # a settled moment for the PNG fallback, in seconds
 
     def k(self, frames, ease=EASE, extra=""):
         """frames: list of (seconds, css). Returns a class name for a looping animation."""
@@ -111,9 +112,9 @@ class Scene:
         caps = "".join('<span class="%s">%s</span>' % (self.fade(a, z, 0.35, move=(0, 4)), t) for t, a, z in self.caps)
         hdr = ('<div class="hdr"><span class="idx">%02d</span><span class="bar"></span><span class="name">%s</span></div>'
                % (self.idx, esc(self.name))) if self.idx else ""
-        return ("<!doctype html><html><head><meta charset='utf-8'><style>%s:root{--acc:%s}%s</style></head>"
+        return ("<!doctype html><html><head><meta charset='utf-8'><meta name='still' content='%.3f'><style>%s:root{--acc:%s}%s</style></head>"
                 "<body><div class='card'>%s<div class='caps'>%s</div><div class='stage'>%s</div></div></body></html>"
-                % (base_css(), self.acc, "".join(self.css), hdr, caps, "".join(self.body)))
+                % (self.still if self.still is not None else 0.62 * self.dur, base_css(), self.acc, "".join(self.css), hdr, caps, "".join(self.body)))
 
 
 # ------------------------------------------------------------------ film stills

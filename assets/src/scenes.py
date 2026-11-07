@@ -183,13 +183,20 @@ def skip_sources():
 SCENES = {"hero": hero, "fingerprint-lookahead": fingerprint, "skip-sources": skip_sources}
 
 
+# Settled moments for the PNG fallbacks: every part of the scene is on screen and nothing is mid-transition.
+STILLS = {"hero": 1.8, "fingerprint-lookahead": 6.2, "skip-sources": 1.8, "borrowed-chapters": 6.6, "theme-matching": 6.2,
+          "early-outro-guard": 4.6, "auto-pick": 5.8, "track-memory": 6.0, "external-player": 4.95, "spoiler-shield": 5.6}
+
+
 def main():
     out = Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
     import scenes_more
     SCENES.update(scenes_more.SCENES)
     for name in (sys.argv[2:] or SCENES):
-        (out / (name + ".html")).write_text(SCENES[name]().html(), encoding="utf-8", newline="\n")
+        sc = SCENES[name]()
+        sc.still = STILLS.get(name)
+        (out / (name + ".html")).write_text(sc.html(), encoding="utf-8", newline="\n")
         print("scene", name)
 
 
