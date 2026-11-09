@@ -100,9 +100,9 @@ An isolated background process fingerprints the audio at the start and end of th
 
 Intro Skipper finds more intros and credits on two sets, at the cost of the wrong skips shown above. On the Western series it found 55 and Fingerprint Lookahead found 50. On the third Korean drama set it found 6 and Fingerprint Lookahead found 0.
 
-**Against <img src="assets/logos/skiptro.png" height="18" alt="Skiptro"> Skiptro 1.4.0, intros only.** This is the current detector under test, a development build that is not in v1.8.0. It used the same audio and the same hand-verified times, covering 183 intros across 32 shows with 6 episodes per season, each analysed against the other 5.
+**Against <img src="assets/logos/skiptro.png" height="18" alt="Skiptro"> Skiptro 1.4.0, intros only.** This test ran on the v1.8.1 detector, just before its last small update. Both tools used the same audio and the same hand-verified times, covering 183 intros across 32 shows with 6 episodes per season, each compared against the other 5.
 
-| Measure | <img src="assets/logos/stremio.png" height="18" alt="Stremio"> Fingerprint Lookahead (development build) | <img src="assets/logos/skiptro.png" height="18" alt="Skiptro"> Skiptro 1.4.0 |
+| Measure | <img src="assets/logos/stremio.png" height="18" alt="Stremio"> Fingerprint Lookahead | <img src="assets/logos/skiptro.png" height="18" alt="Skiptro"> Skiptro 1.4.0 |
 |---|---:|---:|
 | Story skipped, in seconds | **0** | 331 |
 | Wrong skips | **0** | 37 |
@@ -110,7 +110,7 @@ Intro Skipper finds more intros and credits on two sets, at the cost of the wron
 | Skips where the episode has no intro | **0** | 7 |
 | Intros left unmarked | 58 | **33** |
 
-When each episode is compared against only 3 other episodes (averaged over runs), the development build finds 112.2 intros with 3.8 wrong skips and 64.5 seconds of story skipped. Skiptro finds 111.8 intros with 30.0 wrong skips and 271.8 seconds skipped. Plex was not tested.
+When each episode is compared against only 3 other episodes (averaged over runs), Fingerprint Lookahead finds 112.2 intros with 3.8 wrong skips and 64.5 seconds of story skipped. Skiptro finds 111.8 intros with 30.0 wrong skips and 271.8 seconds skipped. Plex was not tested.
 
 | Streamer hardware test (real streams) | Time per episode | Debrid data read | Result |
 |---|---:|---:|---|
