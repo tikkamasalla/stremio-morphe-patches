@@ -1,6 +1,25 @@
-# Stremio Morphe Patches
+<p>
+<picture>
+  <source srcset="assets/hero@2x.webp" type="image/webp">
+  <img src="assets/hero.png" width="100%" alt="Stremio Morphe Patches. A TV player plays an episode, a Skip Intro button slides in, and the playhead jumps over the intro.">
+</picture>
+</p>
 
-Patch Stremio and Vimu to skip intros, recaps, and credits, auto-pick streams, filter out SDH subtitles (subtitles for the deaf and hard of hearing), and sync playback and language choices with external players. Built for Android TV, with phone support added in 1.7. You apply the patches to your own APK using the Morphe app patcher.
+Skip intros, recaps, and credits in Stremio and Vimu, including on episodes no database has timed. The patches add on-device skip detection, automatic stream selection, per-show audio and subtitle memory, an SDH subtitle filter (SDH: subtitles for the deaf and hard of hearing), and external player hand-off. Built for Android TV, with phone support since 1.7. Apply them to your own APK with the Morphe app patcher.
+
+## At a glance
+
+| Feature | What you get | Where you turn it on |
+|---|---|---|
+| [Fingerprint Lookahead](#fingerprint-lookahead) | Skip times for episodes no online source covers, worked out from the season's audio while you watch the previous episode. | Mod settings, `Fingerprint Lookahead` (off by default) |
+| [Chapter-aware skip sources](#chapter-aware-skip-sources) | Intros, recaps, and credits skipped from the file's chapters first, then this project's timings and four online sources. | `Intro Skip` patch |
+| [Borrowed chapters](#borrowed-chapters-with-audio-proof-alignment) | Intro and credits marks for a release that has none, copied from another release once audio proves the files match. | Mod settings, `Borrow chapters from other releases` (off by default) |
+| [Anime theme-song matching](#anime-theme-song-matching) | Anime intros and credits found from the show's official theme songs, in a single episode. | Runs with `Fingerprint Lookahead` |
+| [Early-outro guard](#early-outro-guard) | An early outro is never offered as "Skip intro". | Always on |
+| [Auto-pick best stream](#auto-pick-best-stream) | Press play and the best stream starts. No selection list. | `Auto-pick best stream` patch (on by default) |
+| [Per-show track memory](#per-show-track-memory) | Choose audio and subtitle languages once. Every later episode of the show starts with them. | `Remember tracks per show` patch |
+| [External player hand-off](#external-player-hand-off) | Your external player gets the episode, position, and subtitles. Progress comes back, and the next episode starts there. | `External player progress` and `Binge with external players` patches |
+| [Spoiler shield](#spoiler-shield) | Browse a series without seeing what happens next. | `Hide spoilers` patch |
 
 ## Install
 
@@ -32,20 +51,44 @@ On every Stremio version except 1.6.12, skips snap to keyframes (landing 1-2 s e
 
 ## Features
 
-### Skip intros, recaps, and credits
-
-Skip segments automatically or show an on-screen Skip button in Manual mode. Movies and post-credit scenes never skip. No API keys are needed.
-
-Timestamps load in this priority order:
-1. Embedded video chapters
-2. [IntroKiller Engine](https://github.com/tikkamasalla/introkiller-engine)
-3. AniSkip, TheIntroDB, IntroDB.app, and SkipDB
-
 ### Fingerprint Lookahead
 
-Finds skip times by matching audio across episodes. Online sources are checked first and are always on. Turn on `Fingerprint Lookahead` (off by default) for episodes they do not cover. While you watch an episode, the app compares the next episode's audio in the background against other episodes of the same show and works the timestamps out itself. Detected timestamps have the lowest priority and follow your Auto or Manual setting.
+<p>
+<picture>
+  <source srcset="assets/fingerprint-lookahead@2x.webp" type="image/webp">
+  <img src="assets/fingerprint-lookahead.png" width="100%" alt="While episode 4 plays, the audio of episode 5 is fingerprinted. The audio envelopes of episodes 2 and 3 slide into alignment with it, and the stretch all three share is marked as the intro.">
+</picture>
+</p>
 
-Results apply only to the exact file analyzed, with a limit of up to 2 tries per file per day. If analysis finishes after you start the next episode, the intro skip may not be ready in time.
+A Skip button on episodes no database has timed: new releases, niche shows, and files the online sources never indexed. The next episode is analysed in the background while you watch, so its intro and credits are ready when it starts.
+
+Fingerprint Lookahead is the only on-device skip detection for Stremio on Android TV that we have found. Nuvio reads container chapters and three online databases, with no detection of its own. Jellyfin Intro Skipper detects on a media server, not in the player.
+
+An isolated background process fingerprints the audio at the start and end of the next episode, matches it against other episodes of the show, and reports a segment when at least 2 other episodes agree. Detected times rank below every other source and follow your Auto or Manual setting.
+
+**Against Jellyfin Intro Skipper.** The shipped v1.8.0 detector and Intro Skipper v12.0.6.0 at default settings ran on the same 150 episodes (intros and credits), with the same hand-checked truth and scorer. A wrong skip is an edge more than 1 s inside the story. Cells read Fingerprint Lookahead vs Intro Skipper.
+
+| Test set | Story skipped (s) | Wrong skips | Segments found |
+|---|---:|---:|---:|
+| Western series, 72 episodes | 45.6 vs 2,052.2 | 6 vs 46 | 50 vs 55 |
+| Western holdout, 18 episodes | 0.0 vs 21.4 | 0 vs 8 | 17 vs 16 |
+| Korean drama set 1, 36 episodes | 124.8 vs 1,567.0 | 18 vs 42 | 16 vs 8 |
+| Korean drama set 2, 18 episodes | 104.6 vs 1,269.3 | 8 vs 29 | 4 vs 0 |
+| Korean drama set 3, 6 episodes | 42.8 vs 70.0 | 5 vs 5 | 0 vs 6 |
+
+Intro Skipper finds more segments on two sets (55 vs 50, 6 vs 0), at the cost of the wrong skips shown.
+
+**Against Skiptro 1.4.0, intros only.** This is the current detector under test, a development build that is not in v1.8.0. Same audio and scorer: 183 intros across 32 shows, 6 episodes per season, each analysed against the other 5.
+
+| Measure | Fingerprint Lookahead (development build) | Skiptro 1.4.0 |
+|---|---:|---:|
+| Story skipped | 0 s | 331 s |
+| Wrong skips | 0 | 37 |
+| Intros found | 125 | 113 |
+| Skips where the episode has no intro | 0 | 7 |
+| Intros left unmarked | 58 | 33 |
+
+With 3 reference episodes (mean over runs), the development build finds 112.2 with 3.8 wrong and 64.5 s skipped; Skiptro finds 111.8 with 30.0 wrong and 271.8 s. Plex was not tested.
 
 | Streamer hardware test (real streams) | Time per episode | Debrid data read | Result |
 |---|---:|---:|---|
@@ -53,27 +96,145 @@ Results apply only to the exact file analyzed, with a limit of up to 2 tries per
 | 1080p, one comparison episode to fetch | about 19 minutes | about 0.9 GB | Intro and credits found, frame-accurate |
 | 4K remux, nothing cached locally | about 40 minutes | about 5 GB | Analysis finished, no matches on that show |
 
-Version 1.8 added three detection upgrades:
+Results apply only to the exact file analyzed, with one attempt per episode per day. If analysis finishes while you are inside the detected segment, the player shows a Skip button and never jumps.
 
-| Upgrade | Behavior | Test results |
-|---|---|---|
-| Borrow chapters from other releases (off by default) | Copies intro and credits marks from another release of the same episode after audio alignment verifies both files match. | Offline test of 40 file pairs: 44 of 45 copied segments landed within 1 s (median error 0.001 s, zero story cuts). Refused all 62 deliberately mismatched pairs. |
-| Anime theme-song backup (runs with `Fingerprint Lookahead`) | Matches a show's official theme songs against episode audio. Needs only one episode, requires a Kitsu id, and never overrides another source. | Standalone PC test across 123 episodes: found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and took Blood+ from 0 of 5 intros to 5 of 5. The app matcher agreed on all 99 compared episodes. |
-| Early outro fix | Drops early credits entries on episodes without an intro so an early outro is not offered as "Skip intro". Keeps openings that TheIntroDB mislabels as credits. | Verified by self-tests in both Stremio's player and Vimu. |
+### Chapter-aware skip sources
 
-### Streams, tracks, and external players
+<p>
+<picture>
+  <source srcset="assets/skip-sources@2x.webp" type="image/webp">
+  <img src="assets/skip-sources.png" width="100%" alt="A TV player with chapter marks on its progress bar. The Skip Intro button slides in and the playhead jumps to the end of the Opening chapter. A list shows the seven skip sources in order, with file chapters used.">
+</picture>
+</p>
 
-* **Auto-pick best stream:** Launches the top-ranked stream immediately and skips the selection list. Filters out CAM, telesync, and screener copies.
-* **Remember language tracks:** Stremio's player and Vimu save your audio and subtitle languages per show.
-* **Avoid SDH subtitles:** Selects standard dialogue tracks over hearing-impaired subtitles.
-* **External player sync:** Passes the show title, episode, start position, and subtitles to your external player, records playback progress, and starts the next episode automatically in the same player.
-* **Interface and playback:** Includes `Hide spoilers` for unwatched episodes and `Smoother playback` for frame-rate matching.
+Intros, recaps, and credits skip automatically, or on a button press in Manual mode, from seven sources in a fixed priority order. No API keys are needed. Community timestamps drift between releases, so every online time is verified against your file first. Movies and post-credit scenes never skip: credits skip to the end of the credits, not the end of the file.
+
+| Order | Source | Notes |
+|---:|---|---|
+| 1 | Embedded video chapters | Matroska and WebM files streamed over `http(s)`. Online timestamps snap to chapter edges. |
+| 2 | [IntroKiller Engine](https://github.com/tikkamasalla/introkiller-engine) | This project's published timings |
+| 3 | AniSkip | Anime, resolved to the exact season and cour first |
+| 4 | TheIntroDB | |
+| 5 | IntroDB.app | Fills in missing segment types |
+| 6 | SkipDB | Final online fallback |
+| 7 | Fingerprint Lookahead | Lowest priority, only when switched on |
+
+Online timestamps apply only when your file's duration matches the source's measured runtime within 2 s. Playback never waits for a slow or offline server: failed sources retry at 5 s, 20 s, and 60 s.
+
+### Borrowed chapters with audio-proof alignment
+
+<p>
+<picture>
+  <source srcset="assets/borrowed-chapters@2x.webp" type="image/webp">
+  <img src="assets/borrowed-chapters.png" width="100%" alt="Two releases of the same episode. Release A has intro and credits chapters, release B has none. Their audio slides into alignment, the offset is verified, and the chapter marks move down onto release B.">
+</picture>
+</p>
+
+A release with no chapters gets the intro and credits marks of another release of the same episode. Release cuts differ, so a copied timestamp is safe only once audio proves the offset. Both files are aligned and the match is verified before any mark is copied; if alignment fails, nothing is. `Borrow chapters from other releases` is off by default and works independently of `Fingerprint Lookahead`.
+
+| Offline test, 40 file pairs | Result |
+|---|---:|
+| Copied segments that landed within 1 s | 44 of 45 |
+| Median error | 0.001 s |
+| Story cuts | 0 |
+| Deliberately mismatched pairs refused | 62 of 62 |
+
+### Anime theme-song matching
+
+<p>
+<picture>
+  <source srcset="assets/theme-matching@2x.webp" type="image/webp">
+  <img src="assets/theme-matching.png" width="100%" alt="An official opening song slides across one episode's spectrogram. The match score peaks where it locks, and that stretch is marked as the opening.">
+</picture>
+</p>
+
+Intro and credits for anime episodes no source has timed, found from the show's own theme songs. It needs a single episode, so it works where comparing episodes cannot. It matches the official opening and ending songs from AnimeThemes.moe against the episode audio, runs with `Fingerprint Lookahead`, requires a Kitsu id, fills only missing segment types, and never overrides another source.
+
+| Standalone PC test, 123 episodes | Result |
+|---|---:|
+| Intros found | 82 of 114 |
+| Credits found | 80 of 105 |
+| Real wrong skips | 0 |
+| Blood+ intros found | 0 of 5, then 5 of 5 |
+| Episodes where the app matcher agreed | 99 of 99 compared |
+
+### Early-outro guard
+
+<p>
+<picture>
+  <source srcset="assets/early-outro-guard@2x.webp" type="image/webp">
+  <img src="assets/early-outro-guard.png" width="100%" alt="An online credits entry at 0:38 with no intro arrives while an episode starts. The early-outro guard blocks it, and no Skip Intro button is offered.">
+</picture>
+</p>
+
+"Skip intro" never appears on an outro. On episodes with no intro, an online credits entry near the start would be offered as one. The guard drops that entry and keeps openings that TheIntroDB mislabels as credits. Self-tests cover it in Stremio's player and Vimu.
+
+### Auto-pick best stream
+
+<p>
+<picture>
+  <source srcset="assets/auto-pick@2x.webp" type="image/webp">
+  <img src="assets/auto-pick.png" width="100%" alt="A stream list for an episode. The CAM and telesync rows are struck out, the rest re-rank, and the list collapses to the cached 2160p single-episode stream, which starts.">
+</picture>
+</p>
+
+Press play and the best stream starts. Addon results mix in CAM copies, wrong episodes, and warning cards, so the filter removes CAM, telesync, and screener copies, wrong season or episode numbers, addon warning cards, and external web links before ranking the rest. If every stream fails, the list stays on screen.
+
+| Rank | Rule |
+|---:|---|
+| 1 | Single-episode file before a season pack |
+| 2 | Cached before uncached |
+| 3 | Resolution (requires an explicit 4K label such as `2160p` or `4K`; a bare `UHD` tag does not count) |
+| 4 | HDR or Dolby Vision, then file size, codec, and seeders |
+
+Next-episode prefetch (`Prepare next episode`) resolves the next episode's best stream in the background, so pressing Next, finishing the episode, or using Binge starts it immediately.
+
+### Per-show track memory
+
+<p>
+<picture>
+  <source srcset="assets/track-memory@2x.webp" type="image/webp">
+  <img src="assets/track-memory.png" width="100%" alt="A player with an audio and subtitle panel. Japanese audio and English subtitles are picked once, and the show's next episodes switch from default tracks to those choices.">
+</picture>
+</p>
+
+Choose Japanese audio and English subtitles once, and every later episode of that show starts with them, in Stremio's player and Vimu. The SDH subtitle filter (`Avoid SDH subtitles`) selects standard dialogue tracks over hearing-impaired subtitles.
+
+### External player hand-off
+
+<p>
+<picture>
+  <source srcset="assets/external-player@2x.webp" type="image/webp">
+  <img src="assets/external-player.png" width="100%" alt="Stremio hands the episode, start position and subtitles to an external player window. Positions flow back every 10 seconds, and after a real finish the next episode starts in the same player.">
+</picture>
+</p>
+
+Watch in your own player and keep Stremio's progress and your binge. The title, episode, start position, and subtitles go to the player, progress is recorded, and the next episode starts in the same player. Vimu writes its position every 10 s, so progress survives a crash. Pressing Back, Home, or stopping early never launches the next episode. Vimu, mpv, and Just Player are tested.
+
+### Spoiler shield
+
+<p>
+<picture>
+  <source srcset="assets/spoiler-shield@2x.webp" type="image/webp">
+  <img src="assets/spoiler-shield.png" width="100%" alt="An episode list. Watched episodes show their picture and title. Unwatched ones are blurred and titled Episode 3 and Episode 4. Once episode 3 is watched, its blur lifts and its title appears.">
+</picture>
+</p>
+
+`Hide spoilers` hides thumbnails and synopses of unwatched episodes and replaces their titles with `Episode N`. Each episode is revealed once you watch it.
+
+### Also included
+
+| Feature | What it does |
+|---|---|
+| Smoother playback | Frame-rate matching in Stremio's own player: `Seamless only`, `Always`, or `Off`. |
+| Larger playback buffer | Buffers 50-120 s ahead (up to 256 MB), on by default, to cut stalls on high-bitrate streams. |
+| Mod settings | One screen with every patch option. |
+| Side-by-side install | Installs the patched app as Stremio Morphe next to the original. Off by default. |
 
 ## Known limits
 
-* **Embedded chapters:** Read only from Matroska and WebM files streamed over `http(s)`.
-* **Unindexed releases:** Brand-new episodes without online timestamps cannot skip unless `Fingerprint Lookahead` is on.
-* **Unmarked scenes:** Online credits timestamps can occasionally skip over an unmarked mid-credits or post-credits scene.
+* **Embedded chapters:** Read from Matroska and WebM files streamed over `http(s)`.
+* **Unmarked scenes:** Online credits timestamps can skip over an unmarked mid-credits or post-credits scene.
 * **Required settings:** `Remember tracks` requires Stremio's built-in "auto select" option on builds newer than 1.6.12. `Auto-pick` requires `Always show stream list` to be turned off.
 
 ## Network connections
