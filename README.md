@@ -66,15 +66,37 @@ Fingerprint Lookahead is the only on-device skip detection for Stremio on Androi
 
 An isolated background process fingerprints the audio at the start and end of the next episode, matches it against other episodes of the show, and reports a segment when at least 2 other episodes agree. Detected times rank below every other source and follow your Auto or Manual setting.
 
-**Against Jellyfin Intro Skipper.** The shipped v1.8.0 detector and Intro Skipper v12.0.6.0 at default settings ran on the same 150 episodes (intros and credits), with the same hand-checked truth and scorer. A wrong skip is an edge more than 1 s inside the story. Cells read Fingerprint Lookahead vs Intro Skipper.
+**Against Jellyfin Intro Skipper.** The shipped v1.8.0 detector and Intro Skipper v12.0.6.0 at default settings ran on the same 150 episodes (intros and credits), with the same hand-checked truth and scorer. A wrong skip is an edge more than 1 s inside the story.
 
-| Test set | Story skipped (s) | Wrong skips | Segments found |
-|---|---:|---:|---:|
-| Western series, 72 episodes | 45.6 vs 2,052.2 | 6 vs 46 | 50 vs 55 |
-| Western holdout, 18 episodes | 0.0 vs 21.4 | 0 vs 8 | 17 vs 16 |
-| Korean drama set 1, 36 episodes | 124.8 vs 1,567.0 | 18 vs 42 | 16 vs 8 |
-| Korean drama set 2, 18 episodes | 104.6 vs 1,269.3 | 8 vs 29 | 4 vs 0 |
-| Korean drama set 3, 6 episodes | 42.8 vs 70.0 | 5 vs 5 | 0 vs 6 |
+**Story skipped by mistake, in seconds (lower is better)**
+
+| Test set | Fingerprint Lookahead | Intro Skipper |
+|---|---:|---:|
+| Western series, 72 episodes | **45.6** | 2,052.2 |
+| Western holdout, 18 episodes | **0.0** | 21.4 |
+| Korean drama set 1, 36 episodes | **124.8** | 1,567.0 |
+| Korean drama set 2, 18 episodes | **104.6** | 1,269.3 |
+| Korean drama set 3, 6 episodes | **42.8** | 70.0 |
+
+**Wrong skips (lower is better)**
+
+| Test set | Fingerprint Lookahead | Intro Skipper |
+|---|---:|---:|
+| Western series, 72 episodes | **6** | 46 |
+| Western holdout, 18 episodes | **0** | 8 |
+| Korean drama set 1, 36 episodes | **18** | 42 |
+| Korean drama set 2, 18 episodes | **8** | 29 |
+| Korean drama set 3, 6 episodes | 5 | 5 |
+
+**Segments found (higher is better)**
+
+| Test set | Fingerprint Lookahead | Intro Skipper |
+|---|---:|---:|
+| Western series, 72 episodes | 50 | **55** |
+| Western holdout, 18 episodes | **17** | 16 |
+| Korean drama set 1, 36 episodes | **16** | 8 |
+| Korean drama set 2, 18 episodes | **4** | 0 |
+| Korean drama set 3, 6 episodes | 0 | **6** |
 
 Intro Skipper finds more segments on two sets (55 vs 50, 6 vs 0), at the cost of the wrong skips shown.
 
