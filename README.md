@@ -62,15 +62,15 @@ On every Stremio version except 1.6.12, skips snap to keyframes (landing 1-2 sec
 
 A Skip button on episodes no database has timed: new releases, niche shows, and files the online sources never indexed. The next episode is analysed in the background while you watch, so its intro and credits are ready when it starts.
 
-Fingerprint Lookahead is the only on-device skip detection for Stremio on Android TV that we have found. Nuvio reads the chapters stored in the video file and three online databases, and does not detect anything itself. Jellyfin Intro Skipper detects on a media server instead of in the player.
+Fingerprint Lookahead is the only on-device skip detection for Stremio on Android TV that we have found. <img src="assets/logos/nuvio.png" height="18" alt="Nuvio"> Nuvio reads the chapters stored in the video file and three online databases, and does not detect anything itself. Jellyfin Intro Skipper detects on a media server instead of in the player.
 
 An isolated background process fingerprints the audio at the start and end of the next episode, matches it against other episodes of the show, and reports an intro or credits when at least 2 other episodes agree. Detected times rank below every other source and follow your Auto or Manual setting.
 
-**Against Jellyfin Intro Skipper.** The shipped v1.8.0 detector and Intro Skipper v12.0.6.0 at default settings ran on the same 150 episodes (intros and credits), checked against the same hand-verified times. A wrong skip means it cut more than 1 second of the story.
+**Against <img src="assets/logos/intro-skipper.png" height="18" alt="Intro Skipper"> Jellyfin Intro Skipper.** The shipped v1.8.0 detector and Intro Skipper v12.0.6.0 at default settings ran on the same 150 episodes (intros and credits), checked against the same hand-verified times. A wrong skip means it cut more than 1 second of the story.
 
 **Story skipped by mistake, in seconds (lower is better)**
 
-| Shows | Fingerprint Lookahead | Intro Skipper |
+| Shows | <img src="assets/logos/stremio.png" height="18" alt="Stremio"> Fingerprint Lookahead | <img src="assets/logos/intro-skipper.png" height="18" alt="Intro Skipper"> Intro Skipper |
 |---|---:|---:|
 | Western series, 72 episodes | **45.6** | 2,052.2 |
 | Western shows not used for tuning, 18 episodes | **0.0** | 21.4 |
@@ -80,7 +80,7 @@ An isolated background process fingerprints the audio at the start and end of th
 
 **Wrong skips (lower is better)**
 
-| Shows | Fingerprint Lookahead | Intro Skipper |
+| Shows | <img src="assets/logos/stremio.png" height="18" alt="Stremio"> Fingerprint Lookahead | <img src="assets/logos/intro-skipper.png" height="18" alt="Intro Skipper"> Intro Skipper |
 |---|---:|---:|
 | Western series, 72 episodes | **6** | 46 |
 | Western shows not used for tuning, 18 episodes | **0** | 8 |
@@ -90,7 +90,7 @@ An isolated background process fingerprints the audio at the start and end of th
 
 **Intros and credits found (higher is better)**
 
-| Shows | Fingerprint Lookahead | Intro Skipper |
+| Shows | <img src="assets/logos/stremio.png" height="18" alt="Stremio"> Fingerprint Lookahead | <img src="assets/logos/intro-skipper.png" height="18" alt="Intro Skipper"> Intro Skipper |
 |---|---:|---:|
 | Western series, 72 episodes | 50 | **55** |
 | Western shows not used for tuning, 18 episodes | **17** | 16 |
@@ -100,9 +100,9 @@ An isolated background process fingerprints the audio at the start and end of th
 
 Intro Skipper finds more intros and credits on two sets, at the cost of the wrong skips shown above. On the Western series it found 55 and Fingerprint Lookahead found 50. On the third Korean drama set it found 6 and Fingerprint Lookahead found 0.
 
-**Against Skiptro 1.4.0, intros only.** This is the current detector under test, a development build that is not in v1.8.0. It used the same audio and the same hand-verified times, covering 183 intros across 32 shows with 6 episodes per season, each analysed against the other 5.
+**Against <img src="assets/logos/skiptro.png" height="18" alt="Skiptro"> Skiptro 1.4.0, intros only.** This is the current detector under test, a development build that is not in v1.8.0. It used the same audio and the same hand-verified times, covering 183 intros across 32 shows with 6 episodes per season, each analysed against the other 5.
 
-| Measure | Fingerprint Lookahead (development build) | Skiptro 1.4.0 |
+| Measure | <img src="assets/logos/stremio.png" height="18" alt="Stremio"> Fingerprint Lookahead (development build) | <img src="assets/logos/skiptro.png" height="18" alt="Skiptro"> Skiptro 1.4.0 |
 |---|---:|---:|
 | Story skipped, in seconds | 0 | 331 |
 | Wrong skips | 0 | 37 |
@@ -112,7 +112,7 @@ Intro Skipper finds more intros and credits on two sets, at the cost of the wron
 
 When each episode is compared against only 3 other episodes (averaged over runs), the development build finds 112.2 intros with 3.8 wrong skips and 64.5 seconds of story skipped. Skiptro finds 111.8 intros with 30.0 wrong skips and 271.8 seconds skipped. Plex was not tested.
 
-| Streamer hardware test | Time per episode | Debrid data read | Result |
+| Streamer hardware test (real streams) | Time per episode | Debrid data read | Result |
 |---|---:|---:|---|
 | 1080p, comparison episodes cached locally | about 6 minutes | about 0.4 GB | Intro skipped automatically |
 | 1080p, one comparison episode to fetch | about 19 minutes | about 0.9 GB | Intro and credits found, frame-accurate |
@@ -176,7 +176,7 @@ Intro and credits for anime episodes no source has timed, found from the show's 
 |---|---:|
 | Intros found | 82 of 114 |
 | Credits found | 80 of 105 |
-| Wrong skips | 0 |
+| Real wrong skips | 0 |
 | Blood+ intros found | 0 of 5, then 5 of 5 |
 | Episodes where the app matcher agreed | 99 of 99 compared |
 
