@@ -11,10 +11,10 @@ Skip intros, recaps, and credits in Stremio and Vimu, including on episodes no d
 
 | Feature | What you get | Where you turn it on |
 |---|---|---|
-| [Fingerprint Lookahead](#fingerprint-lookahead) | Skip times for episodes no online source covers, worked out from the season's audio while you watch the previous episode. | Mod settings, `Work out missing skip times` (off by default) |
+| [Fingerprint Lookahead](#fingerprint-lookahead) | Skip times for episodes no online source covers, worked out from the season's audio while you watch the previous episode. | Mod settings, `Fingerprint Lookahead` (off by default) |
 | [Chapter-aware skip sources](#chapter-aware-skip-sources) | Intros, recaps, and credits skipped from the file's chapters first, then this project's timings and four online sources. | `Intro Skip` patch |
 | [Borrowed chapters](#borrowed-chapters-with-audio-proof-alignment) | Intro and credits marks for a release that has none, copied from another release once audio proves the files match. | Mod settings, `Borrow chapters from other releases` (off by default) |
-| [Anime theme-song matching](#anime-theme-song-matching) | Anime intros and credits found from the show's official theme songs, in a single episode. | Runs with `Work out missing skip times` |
+| [Anime theme-song matching](#anime-theme-song-matching) | Anime intros and credits found from the show's official theme songs, in a single episode. | Runs with `Fingerprint Lookahead` |
 | [Early-outro guard](#early-outro-guard) | An early outro is never offered as "Skip intro". | Always on |
 | [Auto-pick best stream](#auto-pick-best-stream) | Press play and the best stream starts. No selection list. | `Auto-pick best stream` patch (on by default) |
 | [Per-show track memory](#per-show-track-memory) | Choose audio and subtitle languages once. Every later episode of the show starts with them. | `Remember tracks per show` patch |
@@ -64,7 +64,7 @@ A Skip button on episodes no database has timed: new releases, niche shows, and 
 
 Fingerprint Lookahead is the only on-device skip detection for Stremio on Android TV that we have found. Nuvio reads container chapters and three online databases, with no detection of its own. Jellyfin Intro Skipper detects on a media server, not in the player.
 
-An isolated background process fingerprints the audio at the start and end of the next episode, matches it against other episodes of the show, and reports a segment when at least 2 other episodes agree. Detected times rank below every other source and follow your Auto or Manual setting. The Mod settings row is labelled `Work out missing skip times`; the next release renames it to Fingerprint Lookahead.
+An isolated background process fingerprints the audio at the start and end of the next episode, matches it against other episodes of the show, and reports a segment when at least 2 other episodes agree. Detected times rank below every other source and follow your Auto or Manual setting.
 
 **Against Jellyfin Intro Skipper.** The shipped v1.8.0 detector and Intro Skipper v12.0.6.0 at default settings ran on the same 150 episodes (intros and credits), with the same hand-checked truth and scorer. A wrong skip is an edge more than 1 s inside the story. Cells read Fingerprint Lookahead vs Intro Skipper.
 
@@ -130,7 +130,7 @@ Online timestamps apply only when your file's duration matches the source's meas
 </picture>
 </p>
 
-A release with no chapters gets the intro and credits marks of another release of the same episode. Release cuts differ, so a copied timestamp is safe only once audio proves the offset. Both files are aligned and the match is verified before any mark is copied; if alignment fails, nothing is. `Borrow chapters from other releases` is off by default and works independently of `Work out missing skip times`.
+A release with no chapters gets the intro and credits marks of another release of the same episode. Release cuts differ, so a copied timestamp is safe only once audio proves the offset. Both files are aligned and the match is verified before any mark is copied; if alignment fails, nothing is. `Borrow chapters from other releases` is off by default and works independently of `Fingerprint Lookahead`.
 
 | Offline test, 40 file pairs | Result |
 |---|---:|
@@ -148,7 +148,7 @@ A release with no chapters gets the intro and credits marks of another release o
 </picture>
 </p>
 
-Intro and credits for anime episodes no source has timed, found from the show's own theme songs. It needs a single episode, so it works where comparing episodes cannot. It matches the official opening and ending songs from AnimeThemes.moe against the episode audio, runs with `Work out missing skip times`, requires a Kitsu id, fills only missing segment types, and never overrides another source.
+Intro and credits for anime episodes no source has timed, found from the show's own theme songs. It needs a single episode, so it works where comparing episodes cannot. It matches the official opening and ending songs from AnimeThemes.moe against the episode audio, runs with `Fingerprint Lookahead`, requires a Kitsu id, fills only missing segment types, and never overrides another source.
 
 | Standalone PC test, 123 episodes | Result |
 |---|---:|
@@ -242,7 +242,7 @@ Watch in your own player and keep Stremio's progress and your binge. The title, 
 Outside of standard Stremio traffic, your addons, and your debrid service, the patches connect only to these hosts:
 
 * **Skip timestamps:** `api.aniskip.com`, `api.theintrodb.org`, `api.introdb.app`, `api.skipdb.tv`, and `raw.githubusercontent.com` (for this project's published timings file).
-* **Anime theme-song backup (only when `Work out missing skip times` is on):** `kitsu.app`, `graphql.anilist.co`, `graphql.animethemes.moe`, and AnimeThemes' audio host.
+* **Anime theme-song backup (only when `Fingerprint Lookahead` is on):** `kitsu.app`, `graphql.anilist.co`, `graphql.animethemes.moe`, and AnimeThemes' audio host.
 * **Show matching:** `graphql.anilist.co`, `kitsu.app`, and `v3-cinemeta.strem.io`.
 
 Requests send only the show id or title, season, episode number, and file duration (where required by the source). The patches never send account credentials, stream URLs, or debrid keys.
@@ -254,7 +254,7 @@ If patching fails or a feature misbehaves, open an issue with your app version, 
 To build the patches from source, run `./gradlew :patches:build` and load `patches/build/libs/patches-*.mpp` in Morphe Desktop.
 
 <!-- PATCHES_START -->
-> **[v1.8.0](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v1.8.1-dev.1](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.8.1-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary> Vimu&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
