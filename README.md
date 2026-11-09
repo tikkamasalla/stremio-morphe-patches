@@ -104,11 +104,11 @@ Intro Skipper finds more intros and credits on two sets, at the cost of the wron
 
 | Measure | <img src="assets/logos/stremio.png" height="18" alt="Stremio"> Fingerprint Lookahead (development build) | <img src="assets/logos/skiptro.png" height="18" alt="Skiptro"> Skiptro 1.4.0 |
 |---|---:|---:|
-| Story skipped, in seconds | 0 | 331 |
-| Wrong skips | 0 | 37 |
-| Intros found | 125 | 113 |
-| Skips where the episode has no intro | 0 | 7 |
-| Intros left unmarked | 58 | 33 |
+| Story skipped, in seconds | **0** | 331 |
+| Wrong skips | **0** | 37 |
+| Intros found | **125** | 113 |
+| Skips where the episode has no intro | **0** | 7 |
+| Intros left unmarked | 58 | **33** |
 
 When each episode is compared against only 3 other episodes (averaged over runs), the development build finds 112.2 intros with 3.8 wrong skips and 64.5 seconds of story skipped. Skiptro finds 111.8 intros with 30.0 wrong skips and 271.8 seconds skipped. Plex was not tested.
 
